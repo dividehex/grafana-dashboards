@@ -192,7 +192,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "GPU core temperature.",
+      "description": "GPU core temperature (gputemps).",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -259,7 +259,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "llamaswap_gpu_temperature_celsius{job=\"$job\",id=~\"$gpu\"}",
+          "expr": "gputemps_core_temperature_celsius{job=\"$job\",id=~\"$gpu\"}",
           "legendFormat": "",
           "range": true,
           "refId": "A"
@@ -1182,7 +1182,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "llamaswap_gpu_temperature_celsius{job=\"$job\",id=~\"$gpu\"}",
+          "expr": "gputemps_core_temperature_celsius{job=\"$job\",id=~\"$gpu\"}",
           "legendFormat": "GPU core",
           "range": true,
           "refId": "A"

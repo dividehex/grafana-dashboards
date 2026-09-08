@@ -163,8 +163,8 @@ def build():
                   (0, 1, 3, 4), pct_thr, "Current GPU utilization.", maximum=100))
     p.append(stat("VRAM used", f"llamaswap_gpu_memory_used_bytes{{{GPU}}}", "bytes",
                   (3, 1, 3, 4), vram_thr, "GPU memory in use.", maximum=24 * 1024**3))
-    p.append(stat("GPU temperature", f"llamaswap_gpu_temperature_celsius{{{GPU}}}", "celsius",
-                  (6, 1, 3, 4), temp_thr, "GPU core temperature.", maximum=100))
+    p.append(stat("GPU temperature", f"gputemps_core_temperature_celsius{{{GPU}}}", "celsius",
+                  (6, 1, 3, 4), temp_thr, "GPU core temperature (gputemps).", maximum=100))
     p.append(stat("VRAM temperature", f"gputemps_vram_temperature_celsius{{{GPU}}}", "celsius",
                   (9, 1, 3, 4), thresholds(("green", None), ("yellow", 85), ("orange", 95), ("red", 105)),
                   "GDDR6X memory temperature read by gputemps (NVML reports 0 on GeForce).", maximum=110))
@@ -205,7 +205,7 @@ def build():
     # Thermals and power
     p.append(row("Thermals and power", 19))
     p.append(timeseries("Temperatures", targets(
-        (f"llamaswap_gpu_temperature_celsius{{{GPU}}}", "GPU core"),
+        (f"gputemps_core_temperature_celsius{{{GPU}}}", "GPU core"),
         (f"gputemps_junction_temperature_celsius{{{GPU}}}", "Junction"),
         (f"gputemps_vram_temperature_celsius{{{GPU}}}", "VRAM"),
     ), "celsius", (0, 20, 12, 8), maximum=110))
