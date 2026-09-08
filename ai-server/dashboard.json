@@ -36,7 +36,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "dND-SFTVk"
+        "uid": "${datasource}"
       },
       "description": "Current GPU utilization.",
       "fieldConfig": {
@@ -98,7 +98,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "llamaswap_gpu_util_percent{job=\"$job\",id=~\"$gpu\"}",
@@ -113,7 +113,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "dND-SFTVk"
+        "uid": "${datasource}"
       },
       "description": "GPU memory in use.",
       "fieldConfig": {
@@ -175,7 +175,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "llamaswap_gpu_memory_used_bytes{job=\"$job\",id=~\"$gpu\"}",
@@ -190,7 +190,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "dND-SFTVk"
+        "uid": "${datasource}"
       },
       "description": "GPU core temperature.",
       "fieldConfig": {
@@ -256,7 +256,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "llamaswap_gpu_temperature_celsius{job=\"$job\",id=~\"$gpu\"}",
@@ -271,7 +271,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "dND-SFTVk"
+        "uid": "${datasource}"
       },
       "description": "GDDR6X memory temperature read by gputemps (NVML reports 0 on GeForce).",
       "fieldConfig": {
@@ -337,7 +337,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "gputemps_vram_temperature_celsius{job=\"$job\",id=~\"$gpu\"}",
@@ -352,7 +352,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "dND-SFTVk"
+        "uid": "${datasource}"
       },
       "description": "GPU board power draw.",
       "fieldConfig": {
@@ -414,7 +414,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "llamaswap_gpu_power_draw_watts{job=\"$job\",id=~\"$gpu\"}",
@@ -429,7 +429,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "dND-SFTVk"
+        "uid": "${datasource}"
       },
       "description": "llama.cpp generation throughput in tokens per second (last request).",
       "fieldConfig": {
@@ -482,7 +482,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "llamacpp:predicted_tokens_seconds{job=\"$job\",model=~\"$model\"}",
@@ -497,7 +497,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "dND-SFTVk"
+        "uid": "${datasource}"
       },
       "description": "llama.cpp prompt-evaluation throughput in tokens per second (last request).",
       "fieldConfig": {
@@ -550,7 +550,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "llamacpp:prompt_tokens_seconds{job=\"$job\",model=~\"$model\"}",
@@ -565,7 +565,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "dND-SFTVk"
+        "uid": "${datasource}"
       },
       "description": "1 when Prometheus scraped the collector and every upstream fetch succeeded. 0 when the scrape failed or the collector could not reach llama-swap or a model.",
       "fieldConfig": {
@@ -623,7 +623,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "min(up{job=\"$job\"}) * ((1 - clamp_max(max(llama_metrics_scrape_errors{job=\"$job\"}), 1)) or vector(1))",
@@ -651,7 +651,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "dND-SFTVk"
+        "uid": "${datasource}"
       },
       "description": "",
       "fieldConfig": {
@@ -743,7 +743,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "llamaswap_gpu_util_percent{job=\"$job\",id=~\"$gpu\"}",
@@ -754,7 +754,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "llamaswap_gpu_memory_util_percent{job=\"$job\",id=~\"$gpu\"}",
@@ -769,7 +769,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "dND-SFTVk"
+        "uid": "${datasource}"
       },
       "description": "",
       "fieldConfig": {
@@ -860,7 +860,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "llamaswap_gpu_memory_used_bytes{job=\"$job\",id=~\"$gpu\"}",
@@ -871,7 +871,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "llamaswap_gpu_memory_total_bytes{job=\"$job\",id=~\"$gpu\"}",
@@ -886,7 +886,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "dND-SFTVk"
+        "uid": "${datasource}"
       },
       "description": "Share of GPU memory in use.",
       "fieldConfig": {
@@ -952,7 +952,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "100 * llamaswap_gpu_memory_used_bytes{job=\"$job\",id=~\"$gpu\"} / llamaswap_gpu_memory_total_bytes{job=\"$job\",id=~\"$gpu\"}",
@@ -967,7 +967,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "dND-SFTVk"
+        "uid": "${datasource}"
       },
       "description": "",
       "fieldConfig": {
@@ -1059,7 +1059,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "llamaswap_gpu_fan_speed_percent{job=\"$job\",id=~\"$gpu\"}",
@@ -1087,7 +1087,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "dND-SFTVk"
+        "uid": "${datasource}"
       },
       "description": "",
       "fieldConfig": {
@@ -1179,7 +1179,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "llamaswap_gpu_temperature_celsius{job=\"$job\",id=~\"$gpu\"}",
@@ -1190,7 +1190,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "gputemps_junction_temperature_celsius{job=\"$job\",id=~\"$gpu\"}",
@@ -1201,7 +1201,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "gputemps_vram_temperature_celsius{job=\"$job\",id=~\"$gpu\"}",
@@ -1216,7 +1216,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "dND-SFTVk"
+        "uid": "${datasource}"
       },
       "description": "",
       "fieldConfig": {
@@ -1308,7 +1308,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "llamaswap_gpu_power_draw_watts{job=\"$job\",id=~\"$gpu\"}",
@@ -1336,7 +1336,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "dND-SFTVk"
+        "uid": "${datasource}"
       },
       "description": "Average and busiest core, from llama-swap's per-core gauge.",
       "fieldConfig": {
@@ -1428,7 +1428,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "avg(llamaswap_cpu_util_percent{job=\"$job\"})",
@@ -1439,7 +1439,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "max(llamaswap_cpu_util_percent{job=\"$job\"})",
@@ -1454,7 +1454,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "dND-SFTVk"
+        "uid": "${datasource}"
       },
       "description": "Models with CPU-offloaded experts (qwen3-30b-a3b) show up here.",
       "fieldConfig": {
@@ -1545,7 +1545,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "llamaswap_memory_used_bytes{job=\"$job\"}",
@@ -1556,7 +1556,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "llamaswap_memory_total_bytes{job=\"$job\"}",
@@ -1567,7 +1567,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "llamaswap_swap_used_bytes{job=\"$job\"}",
@@ -1582,7 +1582,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "dND-SFTVk"
+        "uid": "${datasource}"
       },
       "description": "",
       "fieldConfig": {
@@ -1673,7 +1673,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "llamaswap_load_average{job=\"$job\"}",
@@ -1701,7 +1701,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "dND-SFTVk"
+        "uid": "${datasource}"
       },
       "description": "Per-request speed reported by each llama-server.",
       "fieldConfig": {
@@ -1792,7 +1792,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "llamacpp:prompt_tokens_seconds{job=\"$job\",model=~\"$model\"}",
@@ -1803,7 +1803,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "llamacpp:predicted_tokens_seconds{job=\"$job\",model=~\"$model\"}",
@@ -1818,7 +1818,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "dND-SFTVk"
+        "uid": "${datasource}"
       },
       "description": "Correlate GPU load with inference activity. The busy trace is 100 while a request is being processed.",
       "fieldConfig": {
@@ -1910,7 +1910,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "llamaswap_gpu_util_percent{job=\"$job\",id=~\"$gpu\"}",
@@ -1921,7 +1921,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "100 * llamacpp:requests_processing{job=\"$job\",model=~\"$model\"}",
@@ -1936,7 +1936,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "dND-SFTVk"
+        "uid": "${datasource}"
       },
       "description": "Tokens divided by seconds spent, over the selected time range. Smoother than the per-request gauges.",
       "fieldConfig": {
@@ -2027,7 +2027,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "increase(llamacpp:prompt_tokens_total{job=\"$job\",model=~\"$model\"}[$__range]) / increase(llamacpp:prompt_seconds_total{job=\"$job\",model=~\"$model\"}[$__range])",
@@ -2038,7 +2038,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "increase(llamacpp:tokens_predicted_total{job=\"$job\",model=~\"$model\"}[$__range]) / increase(llamacpp:tokens_predicted_seconds_total{job=\"$job\",model=~\"$model\"}[$__range])",
@@ -2053,7 +2053,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "dND-SFTVk"
+        "uid": "${datasource}"
       },
       "description": "Share of prompt tokens served from the KV cache instead of being re-evaluated.",
       "fieldConfig": {
@@ -2145,7 +2145,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "100 * increase(llamacpp:prompt_tokens_cached_total{job=\"$job\",model=~\"$model\"}[$__rate_interval]) / (increase(llamacpp:prompt_tokens_cached_total{job=\"$job\",model=~\"$model\"}[$__rate_interval]) + increase(llamacpp:prompt_tokens_total{job=\"$job\",model=~\"$model\"}[$__rate_interval]))",
@@ -2173,7 +2173,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "dND-SFTVk"
+        "uid": "${datasource}"
       },
       "description": "Highest observed context token count per loaded model.",
       "fieldConfig": {
@@ -2234,7 +2234,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "llamacpp:n_tokens_max{job=\"$job\",model=~\"$model\"}",
@@ -2249,7 +2249,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "dND-SFTVk"
+        "uid": "${datasource}"
       },
       "description": "Highest observed context as a percentage of the selected context size.",
       "fieldConfig": {
@@ -2315,7 +2315,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "100 * llamacpp:n_tokens_max{job=\"$job\",model=~\"$model\"} / $context_size",
@@ -2330,7 +2330,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "dND-SFTVk"
+        "uid": "${datasource}"
       },
       "description": "",
       "fieldConfig": {
@@ -2421,7 +2421,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "llamacpp:n_tokens_max{job=\"$job\",model=~\"$model\"}",
@@ -2449,7 +2449,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "dND-SFTVk"
+        "uid": "${datasource}"
       },
       "description": "With --parallel 1, processing should normally be 0-1; deferred requests indicate queueing.",
       "fieldConfig": {
@@ -2540,7 +2540,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "llamacpp:requests_processing{job=\"$job\",model=~\"$model\"}",
@@ -2551,7 +2551,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "llamacpp:requests_deferred{job=\"$job\",model=~\"$model\"}",
@@ -2566,7 +2566,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "dND-SFTVk"
+        "uid": "${datasource}"
       },
       "description": "Requests waiting for an inference slot across loaded models.",
       "fieldConfig": {
@@ -2627,7 +2627,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "sum(llamacpp:requests_deferred{job=\"$job\",model=~\"$model\"})",
@@ -2642,7 +2642,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "dND-SFTVk"
+        "uid": "${datasource}"
       },
       "description": "Upstream fetches (llama-swap or a llama-server) that failed on the last scrape.",
       "fieldConfig": {
@@ -2699,7 +2699,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "llama_metrics_scrape_errors{job=\"$job\"}",
@@ -2714,7 +2714,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "dND-SFTVk"
+        "uid": "${datasource}"
       },
       "description": "Models llama-swap currently has loaded, from llama_metrics_model_state.",
       "fieldConfig": {
@@ -2754,7 +2754,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "llama_metrics_model_state{job=\"$job\"}",
@@ -2806,7 +2806,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "dND-SFTVk"
+        "uid": "${datasource}"
       },
       "description": "Across selected models.",
       "fieldConfig": {
@@ -2859,7 +2859,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "sum(increase(llamacpp:prompt_tokens_total{job=\"$job\",model=~\"$model\"}[$__range]))",
@@ -2874,7 +2874,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "dND-SFTVk"
+        "uid": "${datasource}"
       },
       "description": "Across selected models.",
       "fieldConfig": {
@@ -2927,7 +2927,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "sum(increase(llamacpp:tokens_predicted_total{job=\"$job\",model=~\"$model\"}[$__range]))",
@@ -2942,7 +2942,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "dND-SFTVk"
+        "uid": "${datasource}"
       },
       "description": "",
       "fieldConfig": {
@@ -3033,7 +3033,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "rate(llamacpp:prompt_tokens_total{job=\"$job\",model=~\"$model\"}[$__rate_interval])",
@@ -3044,7 +3044,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "rate(llamacpp:tokens_predicted_total{job=\"$job\",model=~\"$model\"}[$__rate_interval])",
@@ -3059,7 +3059,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "dND-SFTVk"
+        "uid": "${datasource}"
       },
       "description": "Generated tokens per interval, stacked by model.",
       "fieldConfig": {
@@ -3150,7 +3150,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "dND-SFTVk"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "expr": "increase(llamacpp:tokens_predicted_total{job=\"$job\",model=~\"$model\"}[$__interval])",
@@ -3175,9 +3175,22 @@
   "templating": {
     "list": [
       {
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "label": "Data source",
+        "name": "datasource",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "regex": "",
+        "type": "datasource"
+      },
+      {
         "datasource": {
           "type": "prometheus",
-          "uid": "dND-SFTVk"
+          "uid": "${datasource}"
         },
         "definition": "label_values(llamaswap_gpu_util_percent, job)",
         "label": "Scrape job",
@@ -3198,7 +3211,7 @@
       {
         "datasource": {
           "type": "prometheus",
-          "uid": "dND-SFTVk"
+          "uid": "${datasource}"
         },
         "definition": "label_values(llamaswap_gpu_util_percent{job=\"$job\"}, id)",
         "label": "GPU",
@@ -3222,7 +3235,7 @@
       {
         "datasource": {
           "type": "prometheus",
-          "uid": "dND-SFTVk"
+          "uid": "${datasource}"
         },
         "definition": "label_values(llamacpp:n_tokens_max{job=\"$job\"}, model)",
         "label": "Model",

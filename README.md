@@ -25,8 +25,15 @@ cd ai-server
 python3 build-dashboard.py > dashboard.json
 ```
 
-The Prometheus datasource uid and the dashboard uid are set at the top of the
-script; change them to match your Grafana instance before importing.
+The Prometheus datasource is a dashboard variable, so the JSON imports on any
+Grafana instance unchanged. The dashboard uid is set at the top of the script.
+
+## Loading the dashboards with Git Sync
+
+Grafana 13 (OSS) can provision every dashboard in this repository directly:
+Administration > General > Provisioning > Connect to repository, repository
+URL `https://github.com/dividehex/grafana-dashboards`, branch `main`, path
+left empty. Each top-level directory becomes a Grafana folder.
 
 ## License
 

@@ -9,12 +9,13 @@ llama_metrics_scrape_errors.
 Usage: python3 build-dashboard.py > dashboard.json
 
 The uid matches the original DCGM/llama.cpp dashboard so importing this file
-(with "overwrite") replaces it in place.
+(with "overwrite") replaces it in place. The Prometheus datasource is a
+dashboard variable, so the JSON works on any Grafana instance without editing.
 """
 
 import json
 
-DS = {"type": "prometheus", "uid": "dND-SFTVk"}
+DS = {"type": "prometheus", "uid": "${datasource}"}
 GPU = 'job="$job",id=~"$gpu"'
 MODEL = 'job="$job",model=~"$model"'
 JOB = 'job="$job"'
@@ -137,7 +138,11 @@ def variables():
             var["current"] = {"text": "", "value": ""}
         return var
 
+    datasource = {"current": {"text": "", "value": ""}, "label": "Data source", "name": "datasource",
+                  "options": [], "query": "prometheus", "refresh": 1, "regex": "", "type": "datasource"}
+
     return [
+        datasource,
         query_var("job", "Scrape job", "llamaswap_gpu_util_percent", "job", multi=False),
         query_var("gpu", "GPU", 'llamaswap_gpu_util_percent{job="$job"}', "id", multi=True),
         query_var("model", "Model", 'llamacpp:n_tokens_max{job="$job"}', "model", multi=True),
