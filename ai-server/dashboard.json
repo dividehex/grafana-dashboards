@@ -1330,6 +1330,483 @@
       },
       "id": 18,
       "panels": [],
+      "title": "Case fans and ambient",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Case fan tachometer per controller channel (octofan_fan_rpm). Only channels with a fan attached are reported.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "rotrpm"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 29,
+        "w": 10,
+        "h": 8
+      },
+      "id": 19,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max",
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "octofan_fan_rpm{job=\"$job\"}",
+          "legendFormat": "Fan {{channel}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Case fans",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Average PWM setting of the case fans as a percentage of full speed.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "unit": "percent",
+          "max": 100
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "x": 10,
+        "y": 29,
+        "w": 4,
+        "h": 4
+      },
+      "id": 20,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "100 * avg(octofan_fan_pwm{job=\"$job\"}) / 255",
+          "legendFormat": "",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Case fan level",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Board resets triggered by the fan controller's hardware watchdog since it was built. An increase means the OS stopped feeding it: the rig hung or the feeder service died.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "x": 10,
+        "y": 33,
+        "w": 4,
+        "h": 4
+      },
+      "id": 21,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "octofan_watchdog_resets_total{job=\"$job\"}",
+          "legendFormat": "",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Watchdog resets",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "BME280 sensor on the fan controller, near the intake.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 1,
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "celsius"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "x": 14,
+        "y": 29,
+        "w": 5,
+        "h": 8
+      },
+      "id": 22,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max",
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "octofan_ambient_temperature_celsius{job=\"$job\"}",
+          "legendFormat": "Ambient",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Ambient temperature",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "BME280 relative humidity.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 1,
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "humidity",
+          "max": 100
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "x": 19,
+        "y": 29,
+        "w": 5,
+        "h": 8
+      },
+      "id": 23,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max",
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "octofan_ambient_humidity_percent{job=\"$job\"}",
+          "legendFormat": "Humidity",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Ambient humidity",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 37
+      },
+      "id": 24,
+      "panels": [],
       "title": "Host",
       "type": "row"
     },
@@ -1401,11 +1878,11 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 29,
+        "y": 38,
         "w": 8,
         "h": 7
       },
-      "id": 19,
+      "id": 25,
       "options": {
         "legend": {
           "calcs": [
@@ -1518,11 +1995,11 @@
       },
       "gridPos": {
         "x": 8,
-        "y": 29,
+        "y": 38,
         "w": 8,
         "h": 7
       },
-      "id": 20,
+      "id": 26,
       "options": {
         "legend": {
           "calcs": [
@@ -1646,11 +2123,11 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 29,
+        "y": 38,
         "w": 8,
         "h": 7
       },
-      "id": 21,
+      "id": 27,
       "options": {
         "legend": {
           "calcs": [
@@ -1691,9 +2168,9 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 36
+        "y": 45
       },
-      "id": 22,
+      "id": 28,
       "panels": [],
       "title": "LLM inference performance",
       "type": "row"
@@ -1765,11 +2242,11 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 37,
+        "y": 46,
         "w": 12,
         "h": 8
       },
-      "id": 23,
+      "id": 29,
       "options": {
         "legend": {
           "calcs": [
@@ -1883,11 +2360,11 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 37,
+        "y": 46,
         "w": 12,
         "h": 8
       },
-      "id": 24,
+      "id": 30,
       "options": {
         "legend": {
           "calcs": [
@@ -2000,11 +2477,11 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 45,
+        "y": 54,
         "w": 12,
         "h": 7
       },
-      "id": 25,
+      "id": 31,
       "options": {
         "legend": {
           "calcs": [
@@ -2118,11 +2595,11 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 45,
+        "y": 54,
         "w": 12,
         "h": 7
       },
-      "id": 26,
+      "id": 32,
       "options": {
         "legend": {
           "calcs": [
@@ -2163,9 +2640,9 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 52
+        "y": 61
       },
-      "id": 27,
+      "id": 33,
       "panels": [],
       "title": "Context",
       "type": "row"
@@ -2207,11 +2684,11 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 53,
+        "y": 62,
         "w": 6,
         "h": 5
       },
-      "id": 28,
+      "id": 34,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -2288,11 +2765,11 @@
       },
       "gridPos": {
         "x": 6,
-        "y": 53,
+        "y": 62,
         "w": 6,
         "h": 5
       },
-      "id": 29,
+      "id": 35,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -2394,11 +2871,11 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 53,
+        "y": 62,
         "w": 12,
         "h": 5
       },
-      "id": 30,
+      "id": 36,
       "options": {
         "legend": {
           "calcs": [
@@ -2439,9 +2916,9 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 58
+        "y": 67
       },
-      "id": 31,
+      "id": 37,
       "panels": [],
       "title": "Request load",
       "type": "row"
@@ -2513,11 +2990,11 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 59,
+        "y": 68,
         "w": 12,
         "h": 8
       },
-      "id": 32,
+      "id": 38,
       "options": {
         "legend": {
           "calcs": [
@@ -2600,11 +3077,11 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 59,
+        "y": 68,
         "w": 4,
         "h": 8
       },
-      "id": 33,
+      "id": 39,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -2672,11 +3149,11 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 59,
+        "y": 68,
         "w": 4,
         "h": 8
       },
-      "id": 34,
+      "id": 40,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -2737,11 +3214,11 @@
       },
       "gridPos": {
         "x": 20,
-        "y": 59,
+        "y": 68,
         "w": 4,
         "h": 8
       },
-      "id": 35,
+      "id": 41,
       "options": {
         "cellHeight": "sm",
         "footer": {
@@ -2796,9 +3273,9 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 67
+        "y": 76
       },
-      "id": 36,
+      "id": 42,
       "panels": [],
       "title": "Token workload",
       "type": "row"
@@ -2832,11 +3309,11 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 68,
+        "y": 77,
         "w": 6,
         "h": 6
       },
-      "id": 37,
+      "id": 43,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -2900,11 +3377,11 @@
       },
       "gridPos": {
         "x": 6,
-        "y": 68,
+        "y": 77,
         "w": 6,
         "h": 6
       },
-      "id": 38,
+      "id": 44,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -3006,11 +3483,11 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 68,
+        "y": 77,
         "w": 12,
         "h": 6
       },
-      "id": 39,
+      "id": 45,
       "options": {
         "legend": {
           "calcs": [
@@ -3123,11 +3600,11 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 74,
+        "y": 83,
         "w": 24,
         "h": 6
       },
-      "id": 40,
+      "id": 46,
       "options": {
         "legend": {
           "calcs": [

@@ -3,8 +3,9 @@
 
 Metrics come from ai-llama-metrics on :9101 (see scripts/llama-metrics/collector.py):
 llamaswap_* host/GPU gauges, gputemps_* core/junction/VRAM temperatures,
-llamacpp:* per-model series labelled model="...", llama_metrics_model_state and
-llama_metrics_scrape_errors.
+llamacpp:* per-model series labelled model="...", llama_metrics_model_state,
+llama_metrics_scrape_errors, and on Octominer rigs octofan_* case fan, ambient
+climate and hardware watchdog readings.
 
 Usage: python3 build-dashboard.py > dashboard.json
 
@@ -212,31 +213,49 @@ def build():
     p.append(timeseries("Power draw", targets((f"llamaswap_gpu_power_draw_watts{{{GPU}}}", "Power")),
                         "watt", (12, 20, 12, 8), maximum=350))
 
+    # Case fans and ambient (Octominer fan controller; rigs only, empty on other jobs)
+    p.append(row("Case fans and ambient", 28))
+    p.append(timeseries("Case fans", targets((f"octofan_fan_rpm{{{JOB}}}", "Fan {{channel}}")),
+                        "rotrpm", (0, 29, 10, 8),
+                        "Case fan tachometer per controller channel (octofan_fan_rpm). Only channels with a fan attached are reported."))
+    p.append(stat("Case fan level", f"100 * avg(octofan_fan_pwm{{{JOB}}}) / 255", "percent",
+                  (10, 29, 4, 4), thresholds(("green", None), ("yellow", 70), ("red", 90)),
+                  "Average PWM setting of the case fans as a percentage of full speed.", maximum=100))
+    p.append(stat("Watchdog resets", f"octofan_watchdog_resets_total{{{JOB}}}", "none",
+                  (10, 33, 4, 4), flat,
+                  "Board resets triggered by the fan controller's hardware watchdog since it was built. "
+                  "An increase means the OS stopped feeding it: the rig hung or the feeder service died."))
+    p.append(timeseries("Ambient temperature", targets((f"octofan_ambient_temperature_celsius{{{JOB}}}", "Ambient")),
+                        "celsius", (14, 29, 5, 8), "BME280 sensor on the fan controller, near the intake.",
+                        decimals=1))
+    p.append(timeseries("Ambient humidity", targets((f"octofan_ambient_humidity_percent{{{JOB}}}", "Humidity")),
+                        "humidity", (19, 29, 5, 8), "BME280 relative humidity.", decimals=1, maximum=100))
+
     # Host
-    p.append(row("Host", 28))
+    p.append(row("Host", 37))
     p.append(timeseries("CPU utilization", targets(
         (f"avg(llamaswap_cpu_util_percent{{{JOB}}})", "All cores"),
         (f"max(llamaswap_cpu_util_percent{{{JOB}}})", "Busiest core"),
-    ), "percent", (0, 29, 8, 7), "Average and busiest core, from llama-swap's per-core gauge.",
+    ), "percent", (0, 38, 8, 7), "Average and busiest core, from llama-swap's per-core gauge.",
         maximum=100))
     p.append(timeseries("System memory", targets(
         (f"llamaswap_memory_used_bytes{{{JOB}}}", "RAM used"),
         (f"llamaswap_memory_total_bytes{{{JOB}}}", "RAM total"),
         (f"llamaswap_swap_used_bytes{{{JOB}}}", "Swap used"),
-    ), "bytes", (8, 29, 8, 7), "Models with CPU-offloaded experts (qwen3-30b-a3b) show up here."))
+    ), "bytes", (8, 38, 8, 7), "Models with CPU-offloaded experts (qwen3-30b-a3b) show up here."))
     p.append(timeseries("Load average", targets((f"llamaswap_load_average{{{JOB}}}", "{{interval}}")),
-                        "none", (16, 29, 8, 7), decimals=2))
+                        "none", (16, 38, 8, 7), decimals=2))
 
     # LLM inference performance
-    p.append(row("LLM inference performance", 36))
+    p.append(row("LLM inference performance", 45))
     p.append(timeseries("Prompt and generation throughput", targets(
         (f"llamacpp:prompt_tokens_seconds{{{MODEL}}}", "{{model}} prompt tok/s"),
         (f"llamacpp:predicted_tokens_seconds{{{MODEL}}}", "{{model}} generation tok/s"),
-    ), "none", (0, 37, 12, 8), "Per-request speed reported by each llama-server.", decimals=1))
+    ), "none", (0, 46, 12, 8), "Per-request speed reported by each llama-server.", decimals=1))
     p.append(timeseries("GPU utilization vs inference", targets(
         (f"llamaswap_gpu_util_percent{{{GPU}}}", "GPU utilization %"),
         (f"100 * llamacpp:requests_processing{{{MODEL}}}", "{{model}} busy (100 = processing)"),
-    ), "percent", (12, 37, 12, 8),
+    ), "percent", (12, 46, 12, 8),
         "Correlate GPU load with inference activity. The busy trace is 100 while a request is being processed.",
         maximum=100))
     p.append(timeseries("Average throughput over range", targets(
@@ -244,58 +263,58 @@ def build():
          "{{model}} prompt tok/s"),
         (f"increase(llamacpp:tokens_predicted_total{{{MODEL}}}[$__range]) / increase(llamacpp:tokens_predicted_seconds_total{{{MODEL}}}[$__range])",
          "{{model}} generation tok/s"),
-    ), "none", (0, 45, 12, 7),
+    ), "none", (0, 54, 12, 7),
         "Tokens divided by seconds spent, over the selected time range. Smoother than the per-request gauges.",
         decimals=1))
     p.append(timeseries("Prompt cache hit rate", targets(
         (f"100 * increase(llamacpp:prompt_tokens_cached_total{{{MODEL}}}[$__rate_interval]) / "
          f"(increase(llamacpp:prompt_tokens_cached_total{{{MODEL}}}[$__rate_interval]) + increase(llamacpp:prompt_tokens_total{{{MODEL}}}[$__rate_interval]))",
          "{{model}}"),
-    ), "percent", (12, 45, 12, 7),
+    ), "percent", (12, 54, 12, 7),
         "Share of prompt tokens served from the KV cache instead of being re-evaluated.",
         decimals=1, maximum=100))
 
     # Context
-    p.append(row("Context", 52))
-    p.append(stat("Context high-water", f"llamacpp:n_tokens_max{{{MODEL}}}", "none", (0, 53, 6, 5),
+    p.append(row("Context", 61))
+    p.append(stat("Context high-water", f"llamacpp:n_tokens_max{{{MODEL}}}", "none", (0, 62, 6, 5),
                   thresholds(("green", None), ("yellow", 24576), ("red", 31000)),
                   "Highest observed context token count per loaded model.", legend="{{model}}"))
     p.append(stat("Max context used", f"100 * llamacpp:n_tokens_max{{{MODEL}}} / $context_size",
-                  "percent", (6, 53, 6, 5),
+                  "percent", (6, 62, 6, 5),
                   thresholds(("green", None), ("yellow", 75), ("orange", 90), ("red", 97)),
                   "Highest observed context as a percentage of the selected context size.",
                   decimals=1, maximum=100, legend="{{model}}"))
     p.append(timeseries("Context high-water over time", targets(
-        (f"llamacpp:n_tokens_max{{{MODEL}}}", "{{model}}")), "none", (12, 53, 12, 5)))
+        (f"llamacpp:n_tokens_max{{{MODEL}}}", "{{model}}")), "none", (12, 62, 12, 5)))
 
     # Request load
-    p.append(row("Request load", 58))
+    p.append(row("Request load", 67))
     p.append(timeseries("Processing and deferred requests", targets(
         (f"llamacpp:requests_processing{{{MODEL}}}", "{{model}} processing"),
         (f"llamacpp:requests_deferred{{{MODEL}}}", "{{model}} deferred"),
-    ), "none", (0, 59, 12, 8),
+    ), "none", (0, 68, 12, 8),
         "With --parallel 1, processing should normally be 0-1; deferred requests indicate queueing."))
     p.append(stat("Deferred requests", f"sum(llamacpp:requests_deferred{{{MODEL}}})", "none",
-                  (12, 59, 4, 8), thresholds(("green", None), ("yellow", 1), ("red", 2)),
+                  (12, 68, 4, 8), thresholds(("green", None), ("yellow", 1), ("red", 2)),
                   "Requests waiting for an inference slot across loaded models."))
     p.append(stat("Collector fetch errors", f"llama_metrics_scrape_errors{{{JOB}}}", "none",
-                  (16, 59, 4, 8), thresholds(("green", None), ("red", 1)),
+                  (16, 68, 4, 8), thresholds(("green", None), ("red", 1)),
                   "Upstream fetches (llama-swap or a llama-server) that failed on the last scrape."))
-    p.append(loaded_models_table((20, 59, 4, 8)))
+    p.append(loaded_models_table((20, 68, 4, 8)))
 
     # Token workload
-    p.append(row("Token workload", 67))
+    p.append(row("Token workload", 76))
     p.append(stat("Prompt tokens in range", f"sum(increase(llamacpp:prompt_tokens_total{{{MODEL}}}[$__range]))",
-                  "short", (0, 68, 6, 6), flat, "Across selected models."))
+                  "short", (0, 77, 6, 6), flat, "Across selected models."))
     p.append(stat("Generated tokens in range", f"sum(increase(llamacpp:tokens_predicted_total{{{MODEL}}}[$__range]))",
-                  "short", (6, 68, 6, 6), flat, "Across selected models."))
+                  "short", (6, 77, 6, 6), flat, "Across selected models."))
     p.append(timeseries("Token rate", targets(
         (f"rate(llamacpp:prompt_tokens_total{{{MODEL}}}[$__rate_interval])", "{{model}} prompt tokens/s"),
         (f"rate(llamacpp:tokens_predicted_total{{{MODEL}}}[$__rate_interval])", "{{model}} generated tokens/s"),
-    ), "none", (12, 68, 12, 6), decimals=1))
+    ), "none", (12, 77, 12, 6), decimals=1))
     p.append(timeseries("Tokens by model", targets(
         (f"increase(llamacpp:tokens_predicted_total{{{MODEL}}}[$__interval])", "{{model}}"),
-    ), "short", (0, 74, 24, 6), "Generated tokens per interval, stacked by model.", stacking="normal"))
+    ), "short", (0, 83, 24, 6), "Generated tokens per interval, stacked by model.", stacking="normal"))
 
     return {
         "annotations": {"list": [{"builtIn": 1, "datasource": {"type": "grafana", "uid": "-- Grafana --"},
