@@ -4,6 +4,7 @@
 Metrics come from ai-llama-metrics on :9101 (see scripts/llama-metrics/collector.py):
 llamaswap_* host/GPU gauges, gputemps_* core/junction/VRAM temperatures,
 llamacpp:* per-model series labelled model="...", llama_metrics_model_state,
+llama_metrics_model_vram_bytes (GPU memory per loaded model, from nvidia-smi),
 llama_metrics_scrape_errors, and on Octominer rigs octofan_* case fan, ambient
 climate and hardware watchdog readings.
 
@@ -35,9 +36,13 @@ def thresholds(*steps):
     return {"mode": "absolute", "steps": [{"color": c, "value": v} for c, v in steps]}
 
 
-def target(expr, legend="", ref="A"):
-    return {"datasource": DS, "editorMode": "code", "expr": expr,
-            "legendFormat": legend, "range": True, "refId": ref}
+def target(expr, legend="", ref="A", instant=False):
+    return {"datasource": DS, "editorMode": "code", "expr": expr, "instant": instant,
+            "legendFormat": legend, "range": not instant, "refId": ref}
+
+
+def table_target(expr, ref):
+    return {**target(expr, "", ref, instant=True), "format": "table"}
 
 
 def targets(*pairs):
@@ -50,11 +55,13 @@ def row(title, y):
 
 
 def stat(title, expr, unit, pos, thr, description="", decimals=0, minimum=0, maximum=None,
-         legend="", text_mode="auto"):
+         legend="", text_mode="auto", instant=False, no_value=None):
     defaults = {"color": {"mode": "thresholds"}, "decimals": decimals, "mappings": [],
                 "min": minimum, "thresholds": thr, "unit": unit}
     if maximum is not None:
         defaults["max"] = maximum
+    if no_value is not None:
+        defaults["noValue"] = no_value
     return {
         "datasource": DS, "description": description,
         "fieldConfig": {"defaults": defaults, "overrides": []},
@@ -63,13 +70,13 @@ def stat(title, expr, unit, pos, thr, description="", decimals=0, minimum=0, max
                     "orientation": "auto", "percentChangeColorMode": "standard",
                     "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": False},
                     "showPercentChange": False, "textMode": text_mode, "wideLayout": True},
-        "pluginVersion": "12.3.1", "targets": [target(expr, legend)],
+        "pluginVersion": "12.3.1", "targets": [target(expr, legend, instant=instant)],
         "title": title, "type": "stat",
     }
 
 
 def timeseries(title, tgts, unit, pos, description="", decimals=0, minimum=0, maximum=None,
-               stacking="none"):
+               stacking="none", overrides=None):
     defaults = {
         "color": {"mode": "palette-classic"},
         "custom": {
@@ -89,7 +96,7 @@ def timeseries(title, tgts, unit, pos, description="", decimals=0, minimum=0, ma
         defaults["max"] = maximum
     return {
         "datasource": DS, "description": description,
-        "fieldConfig": {"defaults": defaults, "overrides": []},
+        "fieldConfig": {"defaults": defaults, "overrides": overrides or []},
         "gridPos": dict(zip("xywh", pos)), "id": next_id(),
         "options": {"legend": {"calcs": ["lastNotNull", "max", "mean"], "displayMode": "table",
                                "placement": "bottom", "showLegend": True},
@@ -98,27 +105,84 @@ def timeseries(title, tgts, unit, pos, description="", decimals=0, minimum=0, ma
     }
 
 
+MODEL_VRAM = f"llama_metrics_model_vram_bytes{{{GPU}}}"
+
+
 def loaded_models_table(pos):
     return {
         "datasource": DS,
-        "description": "Models llama-swap currently has loaded, from llama_metrics_model_state.",
+        "description": "Models llama-swap currently has loaded (llama_metrics_model_state) and the GPU "
+                       "memory each one's process holds (llama_metrics_model_vram_bytes).",
         "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "mappings": [],
                                      "thresholds": thresholds(("green", None))},
-                        "overrides": []},
+                        "overrides": [{"matcher": {"id": "byName", "options": "VRAM"},
+                                       "properties": [{"id": "unit", "value": "bytes"},
+                                                      {"id": "decimals", "value": 1}]}]},
         "gridPos": dict(zip("xywh", pos)), "id": next_id(),
         "options": {"cellHeight": "sm", "footer": {"show": False}, "showHeader": True},
         "pluginVersion": "12.3.1",
-        "targets": [{**target(f"llama_metrics_model_state{{{JOB}}}", "", "A"),
-                     "format": "table", "instant": True, "range": False}],
+        "targets": [table_target(f"llama_metrics_model_state{{{JOB}}}", "A"),
+                    table_target(f"sum by (model) ({MODEL_VRAM})", "B")],
         "transformations": [
+            # Drop the fields that differ between the two frames so the join is only on model.
             {"id": "organize", "options": {
-                "excludeByName": {"Time": True, "Value": True, "__name__": True,
-                                  "instance": True, "job": True},
-                "indexByName": {"model": 0, "state": 1},
-                "renameByName": {"model": "Model", "state": "State"}}},
+                "excludeByName": {"Time": True, "__name__": True, "instance": True, "job": True}}},
+            {"id": "joinByField", "options": {"byField": "model", "mode": "outer"}},
+            {"id": "organize", "options": {
+                "excludeByName": {"Value #A": True},
+                "indexByName": {"model": 0, "state": 1, "Value #B": 2},
+                "renameByName": {"model": "Model", "state": "State", "Value #B": "VRAM"}}},
         ],
         "title": "Loaded models", "type": "table",
     }
+
+
+def model_state_timeline(pos):
+    # PromQL cannot turn a label into a value, so each state is selected separately and
+    # given a number that the value mappings translate back into a coloured, named block.
+    expr = (f'max by (model) (llama_metrics_model_state{{{JOB},state="ready"}} * 3'
+            f' or llama_metrics_model_state{{{JOB},state="starting"}} * 2'
+            f' or llama_metrics_model_state{{{JOB},state="stopping"}})')
+    states = {"1": ("stopping", "orange"), "2": ("starting", "yellow"), "3": ("ready", "green")}
+    mappings = [{"type": "value", "options": {
+        v: {"text": text, "color": color, "index": i} for i, (v, (text, color)) in enumerate(states.items())}}]
+    return {
+        "datasource": DS,
+        "description": "Which models llama-swap had loaded over time, one lane per model, coloured by state. "
+                       "Lines up with the VRAM graph above so each step in memory use has a name.",
+        "fieldConfig": {"defaults": {
+            "color": {"mode": "thresholds"},
+            "custom": {"fillOpacity": 80, "hideFrom": {"legend": False, "tooltip": False, "viz": False},
+                       "lineWidth": 0},
+            "mappings": mappings, "thresholds": thresholds(("green", None))},
+            "overrides": []},
+        "gridPos": dict(zip("xywh", pos)), "id": next_id(),
+        "options": {"alignValue": "left",
+                    "legend": {"displayMode": "list", "placement": "bottom", "showLegend": True},
+                    "mergeValues": True, "rowHeight": 0.8, "showValue": "auto",
+                    "tooltip": {"hideZeros": False, "mode": "single", "sort": "none"}},
+        "pluginVersion": "12.3.1", "targets": [target(expr, "{{model}}")],
+        "title": "Model state", "type": "state-timeline",
+    }
+
+
+def vram_by_model(pos):
+    # Whatever the card reports in use beyond the per-process figures is CUDA context and
+    # driver overhead; the "or ... * 0" keeps that band alive when nothing is loaded.
+    other = (f"llamaswap_gpu_memory_used_bytes{{{GPU}}} - on(id) "
+             f"(sum by (id) ({MODEL_VRAM}) or sum by (id) (llamaswap_gpu_memory_used_bytes{{{GPU}}} * 0))")
+    total_line = {"matcher": {"id": "byName", "options": "Total"},
+                  "properties": [{"id": "custom.stacking", "value": {"group": "A", "mode": "none"}},
+                                 {"id": "custom.fillOpacity", "value": 0},
+                                 {"id": "custom.lineStyle", "value": {"dash": [10, 10], "fill": "dash"}},
+                                 {"id": "color", "value": {"fixedColor": "text", "mode": "fixed"}}]}
+    return timeseries("VRAM by model", targets(
+        (MODEL_VRAM, "{{model}}"),
+        (other, "Other (CUDA context, driver)"),
+        (f"llamaswap_gpu_memory_total_bytes{{{GPU}}}", "Total"),
+    ), "bytes", pos,
+        "GPU memory held by each loaded model's process (nvidia-smi), stacked, against the card's total.",
+        decimals=1, stacking="normal", overrides=[total_line])
 
 
 def variables():
@@ -184,78 +248,84 @@ def build():
                   "1 when Prometheus scraped the collector and every upstream fetch succeeded. "
                   "0 when the scrape failed or the collector could not reach llama-swap or a model.",
                   maximum=1))
+    p.append(stat("Loaded model", f'llama_metrics_model_state{{{JOB},state="ready"}}', "none",
+                  (0, 5, 6, 5), flat, "Models llama-swap has ready to serve; \"none\" when the GPU is idle.",
+                  legend="{{model}}", text_mode="name", instant=True, no_value="none"))
+    p.append(loaded_models_table((6, 5, 18, 5)))
 
     # GPU utilization and memory
-    p.append(row("GPU utilization and memory", 5))
+    p.append(row("GPU utilization and memory", 10))
     p.append(timeseries("GPU utilization", targets(
         (f"llamaswap_gpu_util_percent{{{GPU}}}", "GPU {{id}} core"),
         (f"llamaswap_gpu_memory_util_percent{{{GPU}}}", "GPU {{id}} memory controller"),
-    ), "percent", (0, 6, 12, 8), maximum=100))
+    ), "percent", (0, 11, 12, 8), maximum=100))
     p.append(timeseries("VRAM used / total", targets(
         (f"llamaswap_gpu_memory_used_bytes{{{GPU}}}", "Used"),
         (f"llamaswap_gpu_memory_total_bytes{{{GPU}}}", "Total"),
-    ), "bytes", (12, 6, 12, 8)))
+    ), "bytes", (12, 11, 12, 8)))
+    p.append(vram_by_model((0, 19, 12, 7)))
+    p.append(model_state_timeline((12, 19, 12, 7)))
     p.append(stat("VRAM allocated",
                   f"100 * llamaswap_gpu_memory_used_bytes{{{GPU}}} / llamaswap_gpu_memory_total_bytes{{{GPU}}}",
-                  "percent", (0, 14, 6, 5),
+                  "percent", (0, 26, 6, 5),
                   thresholds(("green", None), ("yellow", 80), ("orange", 90), ("red", 96)),
                   "Share of GPU memory in use.", decimals=1, maximum=100))
     p.append(timeseries("Fan speed", targets((f"llamaswap_gpu_fan_speed_percent{{{GPU}}}", "GPU {{id}} fan")),
-                        "percent", (6, 14, 18, 5), maximum=100))
+                        "percent", (6, 26, 18, 5), maximum=100))
 
     # Thermals and power
-    p.append(row("Thermals and power", 19))
+    p.append(row("Thermals and power", 31))
     p.append(timeseries("Temperatures", targets(
         (f"gputemps_core_temperature_celsius{{{GPU}}}", "GPU core"),
         (f"gputemps_junction_temperature_celsius{{{GPU}}}", "Junction"),
         (f"gputemps_vram_temperature_celsius{{{GPU}}}", "VRAM"),
-    ), "celsius", (0, 20, 12, 8), maximum=110))
+    ), "celsius", (0, 32, 12, 8), maximum=110))
     p.append(timeseries("Power draw", targets((f"llamaswap_gpu_power_draw_watts{{{GPU}}}", "Power")),
-                        "watt", (12, 20, 12, 8), maximum=350))
+                        "watt", (12, 32, 12, 8), maximum=350))
 
     # Case fans and ambient (Octominer fan controller; rigs only, empty on other jobs)
-    p.append(row("Case fans and ambient", 28))
+    p.append(row("Case fans and ambient", 40))
     p.append(timeseries("Case fans", targets((f"octofan_fan_rpm{{{JOB}}}", "Fan {{channel}}")),
-                        "rotrpm", (0, 29, 10, 8),
+                        "rotrpm", (0, 41, 10, 8),
                         "Case fan tachometer per controller channel (octofan_fan_rpm). Only channels with a fan attached are reported."))
     p.append(stat("Case fan level", f"100 * avg(octofan_fan_pwm{{{JOB}}}) / 255", "percent",
-                  (10, 29, 4, 4), thresholds(("green", None), ("yellow", 70), ("red", 90)),
+                  (10, 41, 4, 4), thresholds(("green", None), ("yellow", 70), ("red", 90)),
                   "Average PWM setting of the case fans as a percentage of full speed.", maximum=100))
     p.append(stat("Watchdog resets", f"octofan_watchdog_resets_total{{{JOB}}}", "none",
-                  (10, 33, 4, 4), flat,
+                  (10, 45, 4, 4), flat,
                   "Board resets triggered by the fan controller's hardware watchdog since it was built. "
                   "An increase means the OS stopped feeding it: the rig hung or the feeder service died."))
     p.append(timeseries("Ambient temperature", targets((f"octofan_ambient_temperature_celsius{{{JOB}}}", "Ambient")),
-                        "celsius", (14, 29, 5, 8), "BME280 sensor on the fan controller, near the intake.",
+                        "celsius", (14, 41, 5, 8), "BME280 sensor on the fan controller, near the intake.",
                         decimals=1))
     p.append(timeseries("Ambient humidity", targets((f"octofan_ambient_humidity_percent{{{JOB}}}", "Humidity")),
-                        "humidity", (19, 29, 5, 8), "BME280 relative humidity.", decimals=1, maximum=100))
+                        "humidity", (19, 41, 5, 8), "BME280 relative humidity.", decimals=1, maximum=100))
 
     # Host
-    p.append(row("Host", 37))
+    p.append(row("Host", 49))
     p.append(timeseries("CPU utilization", targets(
         (f"avg(llamaswap_cpu_util_percent{{{JOB}}})", "All cores"),
         (f"max(llamaswap_cpu_util_percent{{{JOB}}})", "Busiest core"),
-    ), "percent", (0, 38, 8, 7), "Average and busiest core, from llama-swap's per-core gauge.",
+    ), "percent", (0, 50, 8, 7), "Average and busiest core, from llama-swap's per-core gauge.",
         maximum=100))
     p.append(timeseries("System memory", targets(
         (f"llamaswap_memory_used_bytes{{{JOB}}}", "RAM used"),
         (f"llamaswap_memory_total_bytes{{{JOB}}}", "RAM total"),
         (f"llamaswap_swap_used_bytes{{{JOB}}}", "Swap used"),
-    ), "bytes", (8, 38, 8, 7), "Models with CPU-offloaded experts (qwen3-30b-a3b) show up here."))
+    ), "bytes", (8, 50, 8, 7), "Models with CPU-offloaded experts (qwen3-30b-a3b) show up here."))
     p.append(timeseries("Load average", targets((f"llamaswap_load_average{{{JOB}}}", "{{interval}}")),
-                        "none", (16, 38, 8, 7), decimals=2))
+                        "none", (16, 50, 8, 7), decimals=2))
 
     # LLM inference performance
-    p.append(row("LLM inference performance", 45))
+    p.append(row("LLM inference performance", 57))
     p.append(timeseries("Prompt and generation throughput", targets(
         (f"llamacpp:prompt_tokens_seconds{{{MODEL}}}", "{{model}} prompt tok/s"),
         (f"llamacpp:predicted_tokens_seconds{{{MODEL}}}", "{{model}} generation tok/s"),
-    ), "none", (0, 46, 12, 8), "Per-request speed reported by each llama-server.", decimals=1))
+    ), "none", (0, 58, 12, 8), "Per-request speed reported by each llama-server.", decimals=1))
     p.append(timeseries("GPU utilization vs inference", targets(
         (f"llamaswap_gpu_util_percent{{{GPU}}}", "GPU utilization %"),
         (f"100 * llamacpp:requests_processing{{{MODEL}}}", "{{model}} busy (100 = processing)"),
-    ), "percent", (12, 46, 12, 8),
+    ), "percent", (12, 58, 12, 8),
         "Correlate GPU load with inference activity. The busy trace is 100 while a request is being processed.",
         maximum=100))
     p.append(timeseries("Average throughput over range", targets(
@@ -263,58 +333,57 @@ def build():
          "{{model}} prompt tok/s"),
         (f"increase(llamacpp:tokens_predicted_total{{{MODEL}}}[$__range]) / increase(llamacpp:tokens_predicted_seconds_total{{{MODEL}}}[$__range])",
          "{{model}} generation tok/s"),
-    ), "none", (0, 54, 12, 7),
+    ), "none", (0, 66, 12, 7),
         "Tokens divided by seconds spent, over the selected time range. Smoother than the per-request gauges.",
         decimals=1))
     p.append(timeseries("Prompt cache hit rate", targets(
         (f"100 * increase(llamacpp:prompt_tokens_cached_total{{{MODEL}}}[$__rate_interval]) / "
          f"(increase(llamacpp:prompt_tokens_cached_total{{{MODEL}}}[$__rate_interval]) + increase(llamacpp:prompt_tokens_total{{{MODEL}}}[$__rate_interval]))",
          "{{model}}"),
-    ), "percent", (12, 54, 12, 7),
+    ), "percent", (12, 66, 12, 7),
         "Share of prompt tokens served from the KV cache instead of being re-evaluated.",
         decimals=1, maximum=100))
 
     # Context
-    p.append(row("Context", 61))
-    p.append(stat("Context high-water", f"llamacpp:n_tokens_max{{{MODEL}}}", "none", (0, 62, 6, 5),
+    p.append(row("Context", 73))
+    p.append(stat("Context high-water", f"llamacpp:n_tokens_max{{{MODEL}}}", "none", (0, 74, 6, 5),
                   thresholds(("green", None), ("yellow", 24576), ("red", 31000)),
                   "Highest observed context token count per loaded model.", legend="{{model}}"))
     p.append(stat("Max context used", f"100 * llamacpp:n_tokens_max{{{MODEL}}} / $context_size",
-                  "percent", (6, 62, 6, 5),
+                  "percent", (6, 74, 6, 5),
                   thresholds(("green", None), ("yellow", 75), ("orange", 90), ("red", 97)),
                   "Highest observed context as a percentage of the selected context size.",
                   decimals=1, maximum=100, legend="{{model}}"))
     p.append(timeseries("Context high-water over time", targets(
-        (f"llamacpp:n_tokens_max{{{MODEL}}}", "{{model}}")), "none", (12, 62, 12, 5)))
+        (f"llamacpp:n_tokens_max{{{MODEL}}}", "{{model}}")), "none", (12, 74, 12, 5)))
 
     # Request load
-    p.append(row("Request load", 67))
+    p.append(row("Request load", 79))
     p.append(timeseries("Processing and deferred requests", targets(
         (f"llamacpp:requests_processing{{{MODEL}}}", "{{model}} processing"),
         (f"llamacpp:requests_deferred{{{MODEL}}}", "{{model}} deferred"),
-    ), "none", (0, 68, 12, 8),
+    ), "none", (0, 80, 12, 8),
         "With --parallel 1, processing should normally be 0-1; deferred requests indicate queueing."))
     p.append(stat("Deferred requests", f"sum(llamacpp:requests_deferred{{{MODEL}}})", "none",
-                  (12, 68, 4, 8), thresholds(("green", None), ("yellow", 1), ("red", 2)),
+                  (12, 80, 6, 8), thresholds(("green", None), ("yellow", 1), ("red", 2)),
                   "Requests waiting for an inference slot across loaded models."))
     p.append(stat("Collector fetch errors", f"llama_metrics_scrape_errors{{{JOB}}}", "none",
-                  (16, 68, 4, 8), thresholds(("green", None), ("red", 1)),
+                  (18, 80, 6, 8), thresholds(("green", None), ("red", 1)),
                   "Upstream fetches (llama-swap or a llama-server) that failed on the last scrape."))
-    p.append(loaded_models_table((20, 68, 4, 8)))
 
     # Token workload
-    p.append(row("Token workload", 76))
+    p.append(row("Token workload", 88))
     p.append(stat("Prompt tokens in range", f"sum(increase(llamacpp:prompt_tokens_total{{{MODEL}}}[$__range]))",
-                  "short", (0, 77, 6, 6), flat, "Across selected models."))
+                  "short", (0, 89, 6, 6), flat, "Across selected models."))
     p.append(stat("Generated tokens in range", f"sum(increase(llamacpp:tokens_predicted_total{{{MODEL}}}[$__range]))",
-                  "short", (6, 77, 6, 6), flat, "Across selected models."))
+                  "short", (6, 89, 6, 6), flat, "Across selected models."))
     p.append(timeseries("Token rate", targets(
         (f"rate(llamacpp:prompt_tokens_total{{{MODEL}}}[$__rate_interval])", "{{model}} prompt tokens/s"),
         (f"rate(llamacpp:tokens_predicted_total{{{MODEL}}}[$__rate_interval])", "{{model}} generated tokens/s"),
-    ), "none", (12, 77, 12, 6), decimals=1))
+    ), "none", (12, 89, 12, 6), decimals=1))
     p.append(timeseries("Tokens by model", targets(
         (f"increase(llamacpp:tokens_predicted_total{{{MODEL}}}[$__interval])", "{{model}}"),
-    ), "short", (0, 83, 24, 6), "Generated tokens per interval, stacked by model.", stacking="normal"))
+    ), "short", (0, 95, 24, 6), "Generated tokens per interval, stacked by model.", stacking="normal"))
 
     return {
         "annotations": {"list": [{"builtIn": 1, "datasource": {"type": "grafana", "uid": "-- Grafana --"},

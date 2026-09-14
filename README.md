@@ -18,7 +18,16 @@ the `ai-llama-metrics` exporter on port 9101, which merges:
   [gputemps](https://github.com/ThomasBaruzier/gddr6-core-junction-vram-temps),
   which reads the GDDR6X sensors that NVML does not expose on GeForce cards;
 - `llamacpp:*` per-model series from every loaded llama-server;
-- `llama_metrics_model_state` and `llama_metrics_scrape_errors`.
+- `llama_metrics_model_state` and `llama_metrics_model_vram_bytes`, which
+  models llama-swap has loaded and how much GPU memory each one's process
+  holds (nvidia-smi per-process figures matched to the model by its listen
+  port; the collector runs with `pid: host` for that);
+- `llama_metrics_scrape_errors`.
+
+The "Current state" row names the loaded models, and "VRAM by model" stacks
+each model's memory against the card total, with driver and CUDA-context
+overhead shown as "Other". The "Model state" timeline under it shows what was
+loaded when.
 
 ```sh
 cd ai-server
