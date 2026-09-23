@@ -8,7 +8,36 @@ place.
 
 ## Dashboards
 
-### ai-server
+### ai-gpu
+
+The NVIDIA GPUs on every GPU node, from the
+`ai-gpu-metrics` exporter
+(Prometheus job `ai-gpu`, port 9101 on each node). It covers:
+
+- utilisation;
+- VRAM, stacked by pod and by host process;
+- core temperature from NVML, and GDDR6X junction and VRAM temperatures from
+  `gpu-temps`;
+- power against the limit, energy, clocks and P-state;
+- a timeline of throttle reasons;
+- the exporter's own health.
+
+Multi-GPU: the **Host** and **GPU** variables are multi-select. GPUs are
+selected by `uuid`, which stays stable when cards are added, and labelled
+`name (index)`.
+
+```sh
+cd ai-gpu
+python3 build-dashboard.py > dashboard.json
+```
+
+### ai-server (superseded)
+
+> Superseded by **ai-gpu** on 2026-09-23. Its GPU panels went empty when
+> llama-swap stopped exporting `llamaswap_gpu_*`, because llama-swap became a
+> controller with no GPU. Its inference and host panels read series that the
+> exporter no longer provides. It stays here until ai-gpu has been checked,
+> and is then deleted.
 
 Host, GPU and llama.cpp inference metrics for the llama-swap server. Scrapes
 the `ai-llama-metrics` exporter on port 9101, which merges:
