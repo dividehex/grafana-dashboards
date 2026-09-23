@@ -1710,12 +1710,87 @@
           "decimals": 0,
           "mappings": [
             {
-              "type": "range",
+              "type": "value",
               "options": {
-                "from": 0,
-                "to": 15,
-                "result": {
-                  "text": "P${__value.raw}"
+                "0": {
+                  "text": "P0",
+                  "color": "green",
+                  "index": 0
+                },
+                "1": {
+                  "text": "P1",
+                  "color": "green",
+                  "index": 1
+                },
+                "2": {
+                  "text": "P2",
+                  "color": "green",
+                  "index": 2
+                },
+                "3": {
+                  "text": "P3",
+                  "color": "green",
+                  "index": 3
+                },
+                "4": {
+                  "text": "P4",
+                  "color": "green",
+                  "index": 4
+                },
+                "5": {
+                  "text": "P5",
+                  "color": "green",
+                  "index": 5
+                },
+                "6": {
+                  "text": "P6",
+                  "color": "green",
+                  "index": 6
+                },
+                "7": {
+                  "text": "P7",
+                  "color": "green",
+                  "index": 7
+                },
+                "8": {
+                  "text": "P8",
+                  "color": "green",
+                  "index": 8
+                },
+                "9": {
+                  "text": "P9",
+                  "color": "green",
+                  "index": 9
+                },
+                "10": {
+                  "text": "P10",
+                  "color": "green",
+                  "index": 10
+                },
+                "11": {
+                  "text": "P11",
+                  "color": "green",
+                  "index": 11
+                },
+                "12": {
+                  "text": "P12",
+                  "color": "green",
+                  "index": 12
+                },
+                "13": {
+                  "text": "P13",
+                  "color": "green",
+                  "index": 13
+                },
+                "14": {
+                  "text": "P14",
+                  "color": "green",
+                  "index": 14
+                },
+                "15": {
+                  "text": "P15",
+                  "color": "green",
+                  "index": 15
                 }
               }
             }

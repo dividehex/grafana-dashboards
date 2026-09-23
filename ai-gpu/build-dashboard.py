@@ -264,8 +264,8 @@ def build():
     p.append(stat("P-state", f"ai_gpu_pstate{{{SEL}}}", "none", (21, 24, 3, 8),
                   thresholds(("green", None)),
                   "Performance state: P0 is full performance, P8 is idle.", graph=False,
-                  mappings=[{"type": "range", "options": {"from": 0, "to": 15,
-                                                          "result": {"text": "P${__value.raw}"}}}]))
+                  # Mapping text is literal (no ${__value} interpolation), so one entry per state.
+                  mappings=value_mappings({n: (f"P{n}", "green") for n in range(16)})))
 
     p.append(row("Throttling", 32))
     p.append(throttle_timeline((0, 33, 24, 8)))
